@@ -8,18 +8,12 @@ const definition = ref<unknown>();
 const activeState = ref<State>('');
 
 window.addEventListener('message', (ev) => {
-  if (ev.data?.type === '@xstate.actor') {
-    if (sessionId.value !== null) {
-      return;
-    }
+  if (ev.data?.type === '@xstate.actor' && sessionId.value === null) {
     sessionId.value = ev.data.sessionId;
     actorName.value = ev.data.name ?? "(machine)";
     definition.value = JSON.parse(ev.data.definition);
     activeState.value = ev.data.snapshot.value;
-  } else if (ev.data?.type === '@xstate.snapshot') {
-    if (ev.data.sessionId !== sessionId.value) {
-      return;
-    }
+  } else if (ev.data?.type === '@xstate.snapshot' && ev.data.sessionId === sessionId.value) {
     activeState.value = ev.data.snapshot.value;
   } else if ((ev.data?.type === '@xstate.event')) {
     // TODO Display event histroy
