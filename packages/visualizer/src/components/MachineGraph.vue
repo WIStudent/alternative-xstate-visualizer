@@ -54,7 +54,9 @@ const directedGraphToCytoscapeModel = (directedGraphNode: DirectedGraphNode, ini
       id: edge.id,
       source: edge.source.id,
       target: edge.target.id,
-      label: edge.label.text
+      label: edge.label.text.startsWith("xstate.done.state.")
+        ? "onDone"
+        : edge.label.text
     }
   }));
 
@@ -69,6 +71,7 @@ const directedGraphToCytoscapeModel = (directedGraphNode: DirectedGraphNode, ini
 const cytoscapeModel = computed(() => {
   const machine = createMachine(definition);
   const directedGraph = toDirectedGraph(machine);
+  console.log(directedGraph);
   return directedGraphToCytoscapeModel(directedGraph);
 })
 
