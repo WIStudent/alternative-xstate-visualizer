@@ -2,7 +2,7 @@
 import { computed, onMounted, useTemplateRef, shallowRef, watch } from 'vue';
 import { createMachine } from 'xstate';
 import { toDirectedGraph, type DirectedGraphNode } from '@xstate/graph';
-import cytoscape, {type NodeDefinition, type EdgeDefinition, type ElementsDefinition, type Core} from 'cytoscape';
+import cytoscape, {type NodeDefinition, type EdgeDefinition, type ElementsDefinition, type Core, type InputEventObject} from 'cytoscape';
 import fcose, { type FcoseLayoutOptions } from 'cytoscape-fcose';
 import {style} from '../cyto-style';
 
@@ -90,20 +90,51 @@ onMounted(() => {
     style,
     layout
   });
-
-  watch([cy, activeNodeIds], ([cy, activeNodeIds]) => {
-    if(!cy) {
+  cy.value.on("mousemove", ({cy, originalEvent}: InputEventObject) => {
+    if (originalEvent.buttons !== 2) {
       return;
     }
-    cy.nodes('[isActive="true"]').removeData('isActive');
-    cy.filter(el => el.isNode() && activeNodeIds.includes(el.id())).data('isActive', "true");
+    cy.panBy({
+      x: originalEvent.movementX,
+      y: originalEvent.movementY
+    });
   })
-
 });
+
+watch([cy, activeNodeIds], ([cy, activeNodeIds]) => {
+  if(!cy) {
+    return;
+  }
+  cy.nodes('[isActive="true"]').removeData('isActive');
+  cy.filter(el => el.isNode() && activeNodeIds.includes(el.id())).data('isActive', "true");
+});
+
+const panLeft = () => {
+  cy.value?.panBy({x: 5, y: 0});
+};
+const panRight = () => {
+  cy.value?.panBy({x: -5, y: 0})
+};
+const panUp = () => {
+  cy.value?.panBy({x: 0, y: 5});
+};
+const panDown = () => {
+  cy.value?.panBy({x: 0, y: -5});
+}
+const mouseUp = () => {
+  cyElement.value?.focus();
+}
 </script>
 
 <template>
-  <div ref="cyElement"></div>
+  <div 
+    ref="cyElement"
+    tabindex="0"
+    @keydown.left="panLeft"
+    @keydown.right="panRight"
+    @keydown.up="panUp"
+    @keydown.down="panDown"
+    @mouseup="mouseUp"></div>
 </template>
 
 <style lang="css" scoped>
